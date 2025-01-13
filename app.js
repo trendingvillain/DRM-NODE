@@ -19,7 +19,7 @@ app.use(express.json()); // Built-in body parser for JSON payloads
 
 // Dynamic CORS Configuration
 const allowedOrigins = [
-  'http://localhost:3000', // Your backend
+  'https://drm-node.onrender.com', // Your backend
   'http://localhost:5173', // Your front-end (development)
   'https://pyytmg.csb.app', // Front-end on CodeSandbox
 ];
