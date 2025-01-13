@@ -21,7 +21,7 @@ app.use(express.json()); // Built-in body parser for JSON payloads
 const allowedOrigins = [
   'https://drm-node.onrender.com', // Your backend
   'http://localhost:5173', // Your front-end (development)
-  'https://pyytmg.csb.app', // Front-end on CodeSandbox
+  'https://idyllic-sable-72aa77.netlify.app', // Front-end on CodeSandbox
 ];
 
 app.use(cors({
