@@ -11,7 +11,7 @@ const getVariantsByBuyerRecordId = async (req, res) => {
     );
     res.status(200).json(result.rows);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching variants:', error);
     res.status(500).json({ error: 'Failed to fetch variants' });
   }
 };
@@ -19,7 +19,7 @@ const getVariantsByBuyerRecordId = async (req, res) => {
 // Create a variant for a buyer record
 const createVariantForBuyerRecord = async (req, res) => {
   const { buyerRecordId } = req.params;
-  const { product_name, quantity, price } = req.body;
+  const { product_name, quantity, price, weight } = req.body;
 
   try {
     const result = await db.query(
@@ -28,7 +28,7 @@ const createVariantForBuyerRecord = async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error(error);
+    console.error('Error creating variant:', error);
     res.status(500).json({ error: 'Failed to create variant' });
   }
 };
@@ -36,12 +36,12 @@ const createVariantForBuyerRecord = async (req, res) => {
 // Update a variant for a buyer record
 const updateVariantForBuyerRecord = async (req, res) => {
   const { variantId } = req.params;
-  const { product_name, quantity, price } = req.body;
+  const { product_name, quantity, price, weight } = req.body;
 
   try {
     const result = await db.query(
-      'UPDATE buyer_varients SET product_name = $1, quantity = $2, price = $3 WHERE id = $4 RETURNING *',
-      [product_name, quantity, price, variantId]
+      'UPDATE buyer_varients SET product_name = $1, quantity = $2, price = $3, weight = $4 WHERE id = $5 RETURNING *',
+      [product_name, quantity, price, weight, variantId]
     );
 
     if (result.rows.length > 0) {
@@ -50,7 +50,7 @@ const updateVariantForBuyerRecord = async (req, res) => {
       res.status(404).json({ error: 'Variant not found' });
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error updating variant:', error);
     res.status(500).json({ error: 'Failed to update variant' });
   }
 };
@@ -71,7 +71,7 @@ const deleteVariantById = async (req, res) => {
       res.status(404).json({ error: 'Variant not found' });
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error deleting variant:', error);
     res.status(500).json({ error: 'Failed to delete variant' });
   }
 };
