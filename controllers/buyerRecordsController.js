@@ -25,10 +25,9 @@ async function createBuyerRecord(req, res) {
     const buyerRecord = buyerCheck.rows[0];
     const buyerAmount = buyerRecord.amount;
 
-    // Subtract the buyer record amount from the buyer's total amount
+    // Update the buyer's amount after creating the buyer record
     const updatedBuyerAmount = buyerAmount + amount;
 
-    // Update the buyer's amount after creating the buyer record
     await db.query(
       'UPDATE buyer SET amount = $1 WHERE id = $2',
       [updatedBuyerAmount, buyerId]
@@ -45,8 +44,14 @@ async function createBuyerRecord(req, res) {
     // Insert each variant (product) into the buyer_variants table
     const variantPromises = varients.map(variant => {
       return db.query(
-        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price) VALUES ($1, $2, $3, $4)',
-        [buyerRecordId, variant.productName, variant.quantity, variant.price]
+        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight) VALUES ($1, $2, $3, $4, $5)',
+        [
+          buyerRecordId,
+          variant.productName,
+          variant.quantity,
+          variant.price,
+          variant.weight // Add weight field here
+        ]
       );
     });
 

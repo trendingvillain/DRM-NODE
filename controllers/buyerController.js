@@ -1,13 +1,23 @@
 const pool = require('../db');
 
-// Create a new Buyer
+const isValidPhoneNumber = (phoneNumber) => {
+  const phoneRegex = /^\d{10}$/; // Regex for 10-digit phone number
+  return phoneRegex.test(phoneNumber);
+};
+
+// Create a new Buyer with validation
 const createBuyer = async (req, res) => {
-  const { name, location, amount } = req.body;
+  const { name, location, amount, phonenumber } = req.body;
+
+  // Validate phonenumber
+  if (!isValidPhoneNumber(phonenumber)) {
+    return res.status(400).json({ error: 'Invalid phone number. Please enter a 10-digit number.' });
+  }
 
   try {
     const result = await pool.query(
-      'INSERT INTO buyer (name, location, amount) VALUES ($1, $2, $3) RETURNING *',
-      [name, location, amount]
+      'INSERT INTO buyer (name, location, amount, phonenumber) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, location, amount, phonenumber]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -15,7 +25,6 @@ const createBuyer = async (req, res) => {
     res.status(500).json({ error: 'Failed to create buyer' });
   }
 };
-
 
 // Get all Buyers
 const getAllBuyers = async (req, res) => {

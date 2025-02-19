@@ -1,14 +1,23 @@
 const pool = require('../db');
 
-// Create Land Owner
 const createLandOwner = async (req, res) => {
-  const { name, location, amount } = req.body;
+  const { name, location, amount, phoneNumber } = req.body;
+
+  // Validate phone number (10 digits only)
+  const isValidPhoneNumber = (phoneNumber) => {
+    const phoneRegex = /^\d{10}$/; // Regex for 10-digit phone number
+    return phoneRegex.test(phoneNumber);
+  };
+
+  if (!isValidPhoneNumber(phoneNumber)) {
+    return res.status(400).json({ error: 'Invalid phone number. Please enter a 10-digit number.' });
+  }
 
   try {
     // Set amount to null if not provided in the request body
     const result = await pool.query(
-      'INSERT INTO land_owners (name, location, amount) VALUES ($1, $2, $3) RETURNING *',
-      [name, location, amount || null]  // If amount is not provided, set it as null
+      'INSERT INTO land_owners (name, location, amount, phoneNumber) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, location, amount || null, phoneNumber] // Include phoneNumber in the query
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
