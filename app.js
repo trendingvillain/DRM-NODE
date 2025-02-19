@@ -19,9 +19,10 @@ app.use(bodyParser.json());
 
 // Configure CORS
 app.use(cors({
-  origin:[ 'https://idyllic-sable-72aa77.netlify.app/','http://localhost:5173/'], // Allow requests from this origin
-  methods: 'GET,POST,PUT,DELETE,OPTIONS', // Allowed methods
-  allowedHeaders: 'Content-Type,Authorization' // Allowed headers
+  origin: ['https://idyllic-sable-72aa77.netlify.app', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Enable credentials if needed (for authentication)
 }));
 
 // Use routes
