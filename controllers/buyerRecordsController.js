@@ -1,18 +1,14 @@
 const db = require('../db'); // Assuming db is correctly set up with pool connection
 
-// Create Buyer Record
 async function createBuyerRecord(req, res) {
   const { buyer, visitDate, amount, varients } = req.body;
+  const buyerId = buyer?.id;
 
-  const buyerId = buyer?.id; // Access the buyer ID
-
-  // Validate that buyer ID exists
   if (!buyerId) {
     return res.status(400).json({ error: 'Buyer ID is required' });
   }
 
   try {
-    // Check if the buyer exists in the buyers table before inserting the record
     const buyerCheck = await db.query(
       'SELECT id, amount FROM buyer WHERE id = $1',
       [buyerId]
@@ -23,50 +19,47 @@ async function createBuyerRecord(req, res) {
     }
 
     const buyerRecord = buyerCheck.rows[0];
-    const buyerAmount = buyerRecord.amount;
-
-    // Update the buyer's amount after creating the buyer record
-    const updatedBuyerAmount = buyerAmount + amount;
+    const updatedBuyerAmount = buyerRecord.amount + amount;
 
     await db.query(
       'UPDATE buyer SET amount = $1 WHERE id = $2',
       [updatedBuyerAmount, buyerId]
     );
 
-    // Insert the buyer's main details into the buyer records table
     const result = await db.query(
       'INSERT INTO buyer_records (buyer_id, visit_date, amount) VALUES ($1, $2, $3) RETURNING id',
       [buyerId, visitDate, amount]
     );
 
-    const buyerRecordId = result.rows[0].id; // Get the generated ID of the inserted record
+    const buyerRecordId = result.rows[0].id;
 
-    // Insert each variant (product) into the buyer_variants table
-    const variantPromises = varients.map(variant => {
+    // ✅ Insert variants with order_index
+    const variantPromises = varients.map((variant, index) => {
       return db.query(
-        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight) VALUES ($1, $2, $3, $4, $5)',
+        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, order_index) VALUES ($1, $2, $3, $4, $5, $6)',
         [
           buyerRecordId,
           variant.productName,
           variant.quantity,
           variant.price,
-          variant.weight // Add weight field here
+          variant.weight,
+          index // <-- Stores order
         ]
       );
     });
 
-    // Wait for all variant insertions to complete
     await Promise.all(variantPromises);
 
     return res.status(201).json({
       message: 'Buyer record and variants created successfully',
-      updatedBuyerAmount
+      updatedBuyerAmount,
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Error inserting buyer record and variants' });
   }
 }
+
 
 // Get all Buyer Records
 const getAllBuyerRecords = async (req, res) => {
