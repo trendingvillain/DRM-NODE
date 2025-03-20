@@ -1,5 +1,6 @@
 const db = require('../db'); // Assuming db is correctly set up with pool connection
 
+// Create Buyer Record
 async function createBuyerRecord(req, res) {
   const { buyer, visitDate, amount, varients } = req.body;
   const buyerId = buyer?.id;
@@ -36,13 +37,14 @@ async function createBuyerRecord(req, res) {
     // ✅ Insert variants with order_index
     const variantPromises = varients.map((variant, index) => {
       return db.query(
-        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, order_index) VALUES ($1, $2, $3, $4, $5, $6)',
+        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, rate, order_index) VALUES ($1, $2, $3, $4, $5, $6)',
         [
           buyerRecordId,
           variant.productName,
           variant.quantity,
           variant.price,
           variant.weight,
+          varients.rate,
           index // <-- Stores order
         ]
       );
