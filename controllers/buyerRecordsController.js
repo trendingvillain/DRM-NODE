@@ -44,7 +44,7 @@ async function createBuyerRecord(req, res) {
           variant.quantity,
           variant.price,
           variant.weight,
-          varient.rate,
+          variant.rate,
           index // <-- Stores order
         ]
       );
