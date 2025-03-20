@@ -37,7 +37,7 @@ async function createBuyerRecord(req, res) {
     // ✅ Insert variants with order_index
     const variantPromises = varients.map((variant, index) => {
       return db.query(
-        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, rate, order_index) VALUES ($1, $2, $3, $4, $5, $6)',
+        'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, rate, order_index) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [
           buyerRecordId,
           variant.productName,
