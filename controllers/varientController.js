@@ -23,7 +23,7 @@ const createVariantForBuyerRecord = async (req, res) => {
 
   try {
     const result = await db.query(
-      'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, rate) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, rate) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [buyerRecordId, product_name, quantity, price, weight, rate]
     );
     res.status(201).json(result.rows[0]);
