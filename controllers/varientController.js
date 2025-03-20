@@ -19,12 +19,12 @@ const getVariantsByBuyerRecordId = async (req, res) => {
 // Create a variant for a buyer record
 const createVariantForBuyerRecord = async (req, res) => {
   const { buyerRecordId } = req.params;
-  const { product_name, quantity, price, weight } = req.body;
+  const { product_name, quantity, price, weight, rate } = req.body;
 
   try {
     const result = await db.query(
-      'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [buyerRecordId, product_name, quantity, price, weight]
+      'INSERT INTO buyer_varients (buyer_record_id, product_name, quantity, price, weight, rate) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [buyerRecordId, product_name, quantity, price, weight, rate]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
