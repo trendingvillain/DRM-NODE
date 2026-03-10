@@ -11,6 +11,8 @@ const landOwnerRecordsRoutes = require('./routes/landOwnerRecordsRoutes');
 const landAvailableRoutes = require('./routes/landAvailableRoutes');
 const varientRoutes = require('./routes/varientRoutes');
 const cutoffController = require('./controllers/cutoffController');
+const miscellaneousRoutes = require('./routes/miscellaneousRoutes');
+
 
 const app = express();
 
@@ -34,6 +36,7 @@ app.use('/api/land-owners-records', landOwnerRecordsRoutes);
 app.use('/api/land-available', landAvailableRoutes);
 app.use('/api/cutoff', cutoffController);
 app.use('/api/varients', varientRoutes);
+app.use('/api/miscellaneous', miscellaneousRoutes);
 
 // Start the server
 const PORT = 3000;
