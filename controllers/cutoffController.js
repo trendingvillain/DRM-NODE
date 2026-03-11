@@ -100,13 +100,16 @@ router.get('/all', async (req, res) => {
     const result = await pool.query(`
       SELECT 
         c.*,
-        la.owner_name,
-        la.varient
+        la.varient,
+        lo.name AS owner_name
       FROM cutoff c
       JOIN land_available la 
         ON c.land_available_id = la.id
+      JOIN land_owners lo
+        ON la.land_owner_id = lo.id
       ORDER BY c.created_date DESC
     `);
+
     res.status(200).json(result.rows);
 
   } catch (error) {
@@ -114,5 +117,4 @@ router.get('/all', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch all Cutoff records' });
   }
 });
-
 module.exports = router;
