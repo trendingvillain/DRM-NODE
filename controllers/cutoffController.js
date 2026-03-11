@@ -9,7 +9,7 @@ router.post('/:landAvailableId', async (req, res) => {
   const { 
     name, 
     area, 
-    variant, 
+    varient, 
     trees, 
     place, 
     amount = 0,
@@ -44,13 +44,13 @@ router.post('/:landAvailableId', async (req, res) => {
       // Insert into cutoff table
       const result = await pool.query(
         `INSERT INTO cutoff 
-        (name, area, variant, trees, place, amount, weight, land_available_id, ship, no_of_palam, cut_by_person)
+        (name, area, varient, trees, place, amount, weight, land_available_id, ship, no_of_palam, cut_by_person)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
         RETURNING *`,
         [
           name,
           area,
-          variant,
+          varient,
           trees,
           place,
           Number(amount),
@@ -97,7 +97,16 @@ router.get('/:landAvailableId/cutoffs', async (req, res) => {
 // Get All Cutoff Records
 router.get('/all', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM cutoff');
+    const result = await pool.query(`
+      SELECT 
+        c.*,
+        la.owner_name,
+        la.varient
+      FROM cutoff c
+      JOIN land_available la 
+        ON c.land_available_id = la.id
+      ORDER BY c.created_date DESC
+    `);
     res.status(200).json(result.rows);
 
   } catch (error) {
