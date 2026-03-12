@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 
 // Configure CORS
 app.use(cors({
-  origin: ['https://idyllic-sable-72aa77.netlify.app', 'http://localhost:5173'],
+  origin: ['https://ornate-madeleine-7d3270.netlify.app', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Enable credentials if needed (for authentication)
