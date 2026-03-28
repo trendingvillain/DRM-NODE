@@ -2,7 +2,6 @@ const db = require('../db'); // PostgreSQL connection
 
 // Create Buyer Record
 async function createBuyerRecord(req, res) {
-
   const { buyer, visitDate, varients } = req.body;
   const buyerId = buyer?.id;
 
@@ -14,21 +13,26 @@ async function createBuyerRecord(req, res) {
     return res.status(400).json({ error: 'At least one variant is required' });
   }
 
-  try {
+  // Get a single client from the pool for the transaction
+  const client = await db.connect();
 
-    // Check if buyer exists
-    const buyerCheck = await db.query(
-      'SELECT id, amount FROM buyer WHERE id = $1',
+  try {
+    await client.query('BEGIN'); // START TRANSACTION
+
+    // 1. Check if buyer exists & Lock row to prevent race conditions
+    const buyerCheck = await client.query(
+      'SELECT id, amount FROM buyer WHERE id = $1 FOR UPDATE',
       [buyerId]
     );
 
     if (buyerCheck.rowCount === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Buyer not found' });
     }
 
     const buyerRecord = buyerCheck.rows[0];
 
-    // Calculate total amount
+    // 2. Calculate total amount (using Number to handle strings/floats safely)
     const amount = varients.reduce(
       (sum, v) => sum + Number(v.price || 0),
       0
@@ -36,33 +40,33 @@ async function createBuyerRecord(req, res) {
 
     const updatedBuyerAmount = Number(buyerRecord.amount) + amount;
 
-    // Update buyer total amount
-    await db.query(
+    // 3. Update buyer total amount
+    await client.query(
       'UPDATE buyer SET amount = $1 WHERE id = $2',
       [updatedBuyerAmount, buyerId]
     );
 
-    // Insert buyer record
-    const result = await db.query(
+    // 4. Insert buyer record
+    const result = await client.query(
       `INSERT INTO buyer_records (buyer_id, visit_date, amount)
-       VALUES ($1,$2,$3)
+       VALUES ($1, $2, $3)
        RETURNING id`,
-      [buyerId, visitDate, amount]
+      [buyerId, visitDate || new Date(), amount]
     );
 
     const buyerRecordId = result.rows[0].id;
 
-    // Insert variants
-    const variantPromises = varients.map((variant, index) => {
-
+    // 5. Insert variants (Sequential processing inside transaction)
+    for (const [index, variant] of varients.entries()) {
       const weight = Number(variant.weight || 0);
       const wastage = Number(variant.wastage || 0);
       const finalWeight = weight - wastage;
+      const rate = Number(variant.rate || 0); // Handle float rate
 
-      return db.query(
+      await client.query(
         `INSERT INTO buyer_varients
         (buyer_record_id, product_name, quantity, price, weight, wastage, final_weight, rate, order_index)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           buyerRecordId,
           variant.productName,
@@ -71,14 +75,13 @@ async function createBuyerRecord(req, res) {
           weight,
           wastage,
           finalWeight,
-          variant.rate,
+          rate,
           index
         ]
       );
+    }
 
-    });
-
-    await Promise.all(variantPromises);
+    await client.query('COMMIT'); // SUCCESS - SAVE EVERYTHING
 
     return res.status(201).json({
       message: 'Buyer record and variants created successfully',
@@ -87,12 +90,15 @@ async function createBuyerRecord(req, res) {
     });
 
   } catch (err) {
-    console.error(err);
+    await client.query('ROLLBACK'); // ERROR - UNDO EVERYTHING
+    console.error("TRANSACTION ERROR:", err);
     return res.status(500).json({
-      error: 'Error inserting buyer record and variants'
+      error: 'Error inserting buyer record and variants',
+      details: err.message // Now you'll see exactly why it failed in the response
     });
+  } finally {
+    client.release(); // Return client to pool
   }
-
 }
 
 
